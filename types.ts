@@ -26,7 +26,10 @@ export interface LabelPlacementData {
 
 export interface PackagingData {
   preset: 'White Plastic Shampoo Bottle' | 'Amber Glass Dropper Bottle' | 'Clear Glass Jar with Lid' | 'White Plastic Pill/Supplement Bottle' | 'Glossy Stand-up Pouch' | 'Matte Cardboard Box' | 'Frosted Plastic Tube';
-  finish: string;
+  color: string;
+  roughness: number;
+  metalness: number;
+  lighting: 'studio' | 'sunny' | 'night';
   height: number;
   diameter: number;
   placement: LabelPlacementData;
