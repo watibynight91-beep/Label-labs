@@ -1,7 +1,6 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState } from 'react';
 import type { MockupView, DimensionsData, LabelData, PackagingData } from '../types';
 import DownloadButton from './DownloadButton';
-import ThreeDeePreview from './ThreeDeePreview';
 
 interface PreviewAreaProps {
     isLoading: boolean;
@@ -109,9 +108,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
       (mockupView === 'back' && backMockup)
     );
 
-    // This is the new condition to determine if we should render the 3D preview.
-    const show3DScene = hasAnyMockup && mockupView !== 'front-back';
-
     return (
         <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl border border-slate-700 h-full flex flex-col p-4">
             <div className="flex-grow bg-black/20 rounded-lg flex items-center justify-center relative overflow-hidden">
@@ -128,7 +124,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
                     </div>
                 )}
 
-                {showPlacementGuide && !show3DScene && <PlacementGuide placement={packagingData.placement} />}
+                {showPlacementGuide && <PlacementGuide placement={packagingData.placement} />}
                 
                 {labelVariations.length > 0 && !isLoading && (
                     <div className="w-full h-full overflow-y-auto p-4">
@@ -144,14 +140,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
                 )}
                 
                 {!isLoading && labelVariations.length === 0 && (() => {
-                    if (show3DScene) {
-                        return (
-                            <Suspense fallback={<Spinner />}>
-                                <ThreeDeePreview />
-                            </Suspense>
-                        );
-                    }
-
                     if (mockupView === 'front-back') {
                         if (frontMockup && backMockup) {
                             return (
@@ -164,7 +152,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
                         return <Placeholder />;
                     }
 
-                    const singleImageToDisplay = generatedLabel;
+                    const singleImageToDisplay = (mockupView === 'front' ? frontMockup : backMockup) || (!frontMockup && !backMockup ? generatedLabel : null);
 
                     if (singleImageToDisplay) {
                         return <img src={`data:image/png;base64,${singleImageToDisplay}`} alt="Generated design" className="object-contain max-h-full max-w-full" />;

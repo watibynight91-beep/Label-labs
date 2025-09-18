@@ -215,6 +215,102 @@ export const generateLabel = async (
 };
 
 
+export const generateMockup = async (
+  labelImageBase64: string,
+  packagingData: PackagingData,
+  view: 'front' | 'back',
+  frontMockupBase64?: string | null
+): Promise<string> => {
+    const { preset, finish, height, diameter, placement } = packagingData;
+    const { rotation, offsetX, offsetY } = placement;
+
+    const containerDescription = `The container to render is a photorealistic "${preset}". The specified finish is "${finish}".`;
+
+    let instructionNumber = 4;
+    const placementInstructionText = (rotation !== 0 || offsetX !== 0 || offsetY !== 0) ? `
+      ${instructionNumber++}. **Label Placement:**
+          - Apply the label with a horizontal (X-axis) offset of approximately ${offsetX}% from the dead center of the container's front face. A negative value shifts it left, a positive value shifts it right.
+          - Apply the label with a vertical (Y-axis) offset of approximately ${offsetY}% from the vertical center of the container's front face. A negative value shifts it down, a positive value shifts it up.
+          - Rotate the label by ${rotation} degrees. A positive value indicates clockwise rotation.
+    ` : '';
+
+    const frontPrompt = `
+      You are a photorealistic 3D rendering artist. Your task is to create a product mockup.
+
+      **Instructions:**
+      1.  You have been provided with a **full wrap-around label** image. The center of the image is the front of the label.
+      2.  Apply this entire label realistically onto a container. ${containerDescription}
+      3.  The container is approximately ${height} inches tall and ${diameter} inches in diameter.
+      ${placementInstructionText}
+      ${instructionNumber++}.  The view should be of the **front** of the product, so the center panel of the label is clearly visible. You should also see parts of the side panels wrapping around the curve of the container.
+      ${instructionNumber++}.  Render the final product on a clean, neutral background (like a marble countertop or a simple studio setting).
+      ${instructionNumber++}.  The lighting should be soft and professional, creating realistic highlights and shadows.
+      ${instructionNumber++}.  Ensure the label wraps correctly and seamlessly around the surface, showing proper perspective and texture.
+    `;
+
+    const backPromptWithContext = `
+        You are a photorealistic 3D rendering artist tasked with creating a consistent 360-degree product view.
+
+        **Instructions:**
+        1.  You have been provided with an image of the **front view** of a product mockup which has a wrap-around label.
+        2.  Your task is to generate the **back view** of the *exact same product*.
+        3.  **Crucially, you must perfectly match ALL visual characteristics from the provided front view image:**
+            -   **Container:** The shape, size, preset description ('${preset}'), and finish ('${finish}') must be identical.
+            -   **Lighting:** Replicate the lighting setup, including the direction, softness, and color. Shadows and highlights must be consistent.
+            -   **Background:** The background environment (e.g., marble countertop, studio setting) must be the same.
+            -   **Camera Angle:** Maintain a consistent camera angle and perspective, simply rotated to view the back.
+        4.  Since the label wraps around, the back view should show the continuation of the label design. The left and right panels of the original flat label design would meet at the back. Do not show the front (center panel) of the label.
+        5.  The final output must be just the image of the back of the product.
+    `;
+
+    const backPromptWithoutContext = `
+        You are a photorealistic 3D rendering artist. Your task is to create a mockup of the back of a product.
+
+        **Instructions:**
+        1.  The provided image is a **full wrap-around label**. You are to render the **back view** of the product.
+        2.  Create a container that is a photorealistic "${preset}" with a "${finish}" finish. The dimensions are approximately ${height} inches tall and ${diameter} inches in diameter.
+        3.  Apply the label to the container, but show the view from the back. The back is where the edges of the flat label image would meet. You should see the content from the left and right panels of the label image. Do not show the front (center panel) of the label.
+        4.  Render the product on a clean, neutral background (like a marble countertop or a simple studio setting).
+        5.  The lighting should be soft and professional, creating realistic highlights and shadows.
+    `;
+    
+    let prompt: string;
+    const parts = [];
+
+    if (view === 'front') {
+        prompt = frontPrompt;
+        parts.push(fileToGenerativePart(labelImageBase64, 'image/png'));
+    } else { // view is 'back'
+        if (frontMockupBase64) {
+            prompt = backPromptWithContext;
+            parts.push(fileToGenerativePart(frontMockupBase64, 'image/png'));
+        } else {
+            prompt = backPromptWithoutContext;
+            parts.push(fileToGenerativePart(labelImageBase64, 'image/png'));
+        }
+    }
+    
+    parts.push({ text: prompt });
+
+    const response = await ai.models.generateContent({
+        model: imageModel,
+        contents: {
+            parts: parts,
+        },
+        config: {
+            responseModalities: [Modality.IMAGE, Modality.TEXT],
+        },
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+            return part.inlineData.data;
+        }
+    }
+
+    throw new Error("Could not generate mockup image. The AI did not return an image.");
+};
+
 export const refineImage = async (
   currentImageBase64: string,
   refinementPrompt: string
