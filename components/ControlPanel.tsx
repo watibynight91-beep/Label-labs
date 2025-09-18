@@ -1,7 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import type { LabelData, DimensionsData, PackagingData, MockupView, TriggeredAction } from '../types';
 import { generateTextSuggestions, generatePackagingSuggestions } from '../services/geminiService';
-
+import SparklesIcon from './icons/SparklesIcon';
+import MagicWandIcon from './icons/MagicWandIcon';
+import SuggestionWandIcon from './icons/SuggestionWandIcon';
+import SuggestionPopover from './common/SuggestionPopover';
 
 interface ControlPanelProps {
   labelData: LabelData;
@@ -23,29 +26,6 @@ interface ControlPanelProps {
   setMockupView: React.Dispatch<React.SetStateAction<MockupView>>;
 }
 
-const SparklesIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.502L16.5 21.75l-.398-1.248a3.375 3.375 0 00-2.456-2.456L12.5 17.25l1.248-.398a3.375 3.375 0 002.456-2.456L16.5 13.5l.398 1.248a3.375 3.375 0 002.456 2.456L20.5 17.25l-1.248.398a3.375 3.375 0 00-2.456 2.456z" />
-    </svg>
-);
-
-const MagicWandIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.692c0 .356.186.683.475.865l4.283 2.624M9.75 3.104a2.25 2.25 0 014.5 0v5.692a2.25 2.25 0 01-1.42 2.1l-4.283 2.624a2.25 2.25 0 01-3.08-2.1V5.204a2.25 2.25 0 013.08-2.1zM9.75 14.354l4.283-2.624m-4.283 2.624a2.25 2.25 0 00-1.42 2.1v3.104a2.25 2.25 0 003.08 2.1l4.283-2.624a2.25 2.25 0 001.42-2.1V14.354M14.25 11.73l4.283 2.624a2.25 2.25 0 003.08-2.1V8.146a2.25 2.25 0 00-3.08-2.1L14.25 8.646" />
-    </svg>
-);
-
-const SuggestionWandIcon = ({ isLoading }: { isLoading: boolean }) => {
-    if (isLoading) {
-        return <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-slate-100"></div>;
-    }
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400 group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-        </svg>
-    );
-};
-
 
 const presetOptions: { value: PackagingData['preset']; label: string }[] = [
     { value: 'White Plastic Shampoo Bottle', label: 'White Shampoo Bottle' },
@@ -57,44 +37,6 @@ const presetOptions: { value: PackagingData['preset']; label: string }[] = [
     { value: 'Matte Cardboard Box', label: 'Matte Cardboard Box' },
 ];
 
-const SuggestionPopover: React.FC<{
-    suggestions: string[];
-    onSelect: (suggestion: string) => void;
-    onClose: () => void;
-    targetRef: React.RefObject<HTMLDivElement>;
-}> = ({ suggestions, onSelect, onClose, targetRef }) => {
-    const popoverRef = useRef<HTMLUListElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                popoverRef.current && !popoverRef.current.contains(event.target as Node) &&
-                targetRef.current && !targetRef.current.contains(event.target as Node)
-            ) {
-                onClose();
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [onClose, targetRef]);
-
-    if (!suggestions.length) return null;
-
-    return (
-        <ul ref={popoverRef} className="absolute z-10 mt-2 w-full bg-slate-800 border border-slate-600 rounded-md shadow-lg py-1">
-            {suggestions.map((suggestion, index) => (
-                <li key={index}>
-                    <button
-                        onClick={() => onSelect(suggestion)}
-                        className="w-full text-left px-3 py-1.5 text-sm text-slate-200 hover:bg-indigo-600"
-                    >
-                        {suggestion}
-                    </button>
-                </li>
-            ))}
-        </ul>
-    );
-};
 
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
