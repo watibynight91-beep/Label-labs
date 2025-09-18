@@ -24,18 +24,10 @@ interface PreviewAreaProps {
     packagingData: PackagingData;
 }
 
-/**
- * A spinner component to indicate a loading state.
- * @returns {React.ReactElement} The rendered spinner.
- */
 const Spinner = () => (
     <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
 );
 
-/**
- * A placeholder component displayed when no image has been generated yet.
- * @returns {React.ReactElement} The rendered placeholder.
- */
 const Placeholder = () => (
     <div className="w-full h-full flex flex-col items-center justify-center text-center text-slate-500 border-2 border-dashed border-slate-700 rounded-lg p-8">
         <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-24 w-24 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -47,32 +39,18 @@ const Placeholder = () => (
     </div>
 );
 
-/**
- * An icon for the "Undo" button.
- * @returns {React.ReactElement} The rendered SVG icon.
- */
 const UndoIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
     </svg>
 );
 
-/**
- * An icon for the "Redo" button.
- * @returns {React.ReactElement} The rendered SVG icon.
- */
 const RedoIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
       <path strokeLinecap="round" strokeLinejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
     </svg>
 );
 
-/**
- * A visual guide that shows the placement, offset, and rotation of the label on a mockup.
- * @param {object} props The props for the component.
- * @param {PackagingData['placement']} props.placement The placement data for the label.
- * @returns {React.ReactElement} The rendered placement guide.
- */
 const PlacementGuide: React.FC<{ placement: PackagingData['placement'] }> = ({ placement }) => {
     const guideStyle: React.CSSProperties = {
         position: 'absolute',
@@ -97,13 +75,6 @@ const PlacementGuide: React.FC<{ placement: PackagingData['placement'] }> = ({ p
 };
 
 
-/**
- * The main preview area component.
- * It displays the generated labels, mockups, loading spinners, error messages,
- * and provides controls for refinement, undo/redo, and variation selection.
- * @param {PreviewAreaProps} props The props for the component.
- * @returns {React.ReactElement} The rendered preview area.
- */
 const PreviewArea: React.FC<PreviewAreaProps> = ({ 
     isLoading, loadingMessage, error, generatedLabel, generatedMockup, 
     onRefine, labelVariations, onSelectVariation,

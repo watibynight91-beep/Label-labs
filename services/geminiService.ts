@@ -11,12 +11,6 @@ const imageModel = 'gemini-2.5-flash-image-preview';
 const textModel = 'gemini-2.5-flash';
 
 
-/**
- * Converts a base64 encoded file to a GenerativePart object for the Google GenAI API.
- * @param {string} base64Data The base64 encoded data of the file.
- * @param {string} mimeType The MIME type of the file.
- * @returns {{ inlineData: { data: string; mimeType: string; } }} The GenerativePart object.
- */
 const fileToGenerativePart = (base64Data: string, mimeType: string) => {
   return {
     inlineData: {
@@ -26,13 +20,6 @@ const fileToGenerativePart = (base64Data: string, mimeType: string) => {
   };
 };
 
-/**
- * Generates text-based suggestions for specific fields of the product label.
- * @param {'productName' | 'tagline' | 'aesthetic' | 'colorPalette'} field The field for which to generate suggestions.
- * @param {LabelData} labelData The current label data to base the suggestions on.
- * @returns {Promise<string[]>} A promise that resolves to an array of string suggestions.
- * @throws {Error} If the AI fails to return a valid response.
- */
 export const generateTextSuggestions = async (
   field: 'productName' | 'tagline' | 'aesthetic' | 'colorPalette',
   labelData: LabelData
@@ -78,12 +65,6 @@ export const generateTextSuggestions = async (
   }
 };
 
-/**
- * Generates suggestions for product packaging based on product details.
- * @param {LabelData} labelData The current label data to inform the packaging suggestions.
- * @returns {Promise<Partial<PackagingData>>} A promise that resolves to an object with suggested packaging data.
- * @throws {Error} If the AI returns invalid data or fails to respond.
- */
 export const generatePackagingSuggestions = async (
   labelData: LabelData
 ): Promise<Partial<PackagingData>> => {
@@ -151,15 +132,6 @@ export const generatePackagingSuggestions = async (
 };
 
 
-/**
- * Generates a product label image based on provided data and an optional logo.
- * @param {LabelData} labelData The data for the label content.
- * @param {DimensionsData} dimensionsData The dimensions for the label.
- * @param {string | null} logoBase64 The base64 encoded logo image, or null if not provided.
- * @param {string | null} logoMimeType The MIME type of the logo image, or null if not provided.
- * @returns {Promise<string>} A promise that resolves to the base64 encoded string of the generated label image.
- * @throws {Error} If the AI fails to return an image.
- */
 export const generateLabel = async (
   labelData: LabelData,
   dimensionsData: DimensionsData,
@@ -243,15 +215,6 @@ export const generateLabel = async (
 };
 
 
-/**
- * Generates a product mockup image by applying a label to a 3D model of packaging.
- * @param {string} labelImageBase64 The base64 encoded string of the label image.
- * @param {PackagingData} packagingData The data describing the product packaging.
- * @param {'front' | 'back'} view The perspective of the mockup to generate.
- * @param {string | null} [frontMockupBase64] Optional base64 of the front view, used to generate a consistent back view.
- * @returns {Promise<string>} A promise that resolves to the base64 encoded string of the generated mockup image.
- * @throws {Error} If the AI fails to return an image.
- */
 export const generateMockup = async (
   labelImageBase64: string,
   packagingData: PackagingData,
@@ -348,13 +311,6 @@ export const generateMockup = async (
     throw new Error("Could not generate mockup image. The AI did not return an image.");
 };
 
-/**
- * Refines an existing image based on a user-provided text prompt.
- * @param {string} currentImageBase64 The base64 encoded string of the image to refine.
- * @param {string} refinementPrompt A text prompt describing the desired changes.
- * @returns {Promise<string>} A promise that resolves to the base64 encoded string of the refined image.
- * @throws {Error} If the AI fails to return an image.
- */
 export const refineImage = async (
   currentImageBase64: string,
   refinementPrompt: string
@@ -386,16 +342,6 @@ export const refineImage = async (
     throw new Error("Could not refine image. The AI did not return an image.");
 };
 
-/**
- * Generates multiple variations of a product label.
- * @param {LabelData} labelData The data for the label content.
- * @param {DimensionsData} dimensionsData The dimensions for the label.
- * @param {string | null} logoBase64 The base64 encoded logo image, or null if not provided.
- * @param {string | null} logoMimeType The MIME type of the logo image, or null if not provided.
- * @param {number} [count=3] The number of variations to generate.
- * @returns {Promise<string[]>} A promise that resolves to an array of base64 encoded strings for each label variation.
- * @throws {Error} If one or more variations fail to generate.
- */
 export const generateLabelVariations = async (
   labelData: LabelData,
   dimensionsData: DimensionsData,
@@ -418,15 +364,6 @@ export const generateLabelVariations = async (
     return results;
 };
 
-/**
- * Analyzes a provided image for its style and generates a new label using that style with new content.
- * @param {string} imageBase64 The base64 encoded string of the image to analyze for style.
- * @param {string} mimeType The MIME type of the provided image.
- * @param {LabelData} labelData The new content to be included in the generated label.
- * @param {DimensionsData} dimensionsData The dimensions for the new label.
- * @returns {Promise<string>} A promise that resolves to the base64 encoded string of the newly generated label.
- * @throws {Error} If the AI fails to return an image.
- */
 export const analyzeAndGenerateFromImage = async (
   imageBase64: string,
   mimeType: string,

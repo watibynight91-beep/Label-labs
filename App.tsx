@@ -14,12 +14,6 @@ interface DesignState {
     };
 }
 
-/**
- * The main application component. It orchestrates the entire UI and manages the application's state,
- * including user inputs, generated designs, and interaction logic.
- * It connects the control panel and preview area, handling all data flow and AI service calls.
- * @returns {React.ReactElement} The rendered application.
- */
 const App: React.FC = () => {
     const [labelData, setLabelData] = useState<LabelData>({
         productName: 'Organic Hair Shampoo',
