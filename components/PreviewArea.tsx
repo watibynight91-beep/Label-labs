@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import type { MockupView, DimensionsData, LabelData, PackagingData } from '../types';
 import DownloadButton from './DownloadButton';
-import Spinner from './common/Spinner';
-import UndoIcon from './icons/UndoIcon';
-import RedoIcon from './icons/RedoIcon';
 
 interface PreviewAreaProps {
     isLoading: boolean;
@@ -27,6 +24,10 @@ interface PreviewAreaProps {
     packagingData: PackagingData;
 }
 
+const Spinner = () => (
+    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
+);
+
 const Placeholder = () => (
     <div className="w-full h-full flex flex-col items-center justify-center text-center text-slate-500 border-2 border-dashed border-slate-700 rounded-lg p-8">
         <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-24 w-24 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -38,6 +39,17 @@ const Placeholder = () => (
     </div>
 );
 
+const UndoIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+    </svg>
+);
+
+const RedoIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+    </svg>
+);
 
 const PlacementGuide: React.FC<{ placement: PackagingData['placement'] }> = ({ placement }) => {
     const guideStyle: React.CSSProperties = {
