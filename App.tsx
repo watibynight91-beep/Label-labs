@@ -36,7 +36,10 @@ const App: React.FC = () => {
 
     const [packagingData, setPackagingData] = useState<PackagingData>({
         preset: 'White Plastic Shampoo Bottle',
-        finish: 'glossy',
+        color: '#ffffff',
+        roughness: 0.2,
+        metalness: 0.0,
+        lighting: 'studio',
         height: 7,
         diameter: 2.5,
         placement: {
@@ -64,6 +67,7 @@ const App: React.FC = () => {
     const [currentStep, setCurrentStep] = useState<GenerationStep | null>(null);
     const [triggeredAction, setTriggeredAction] = useState<TriggeredAction>(null);
     const [mockupView, setMockupView] = useState<MockupView>('front');
+    const [customModelUrl, setCustomModelUrl] = useState<string | null>(null);
 
     const handleLogoChange = (file: File | null) => {
         if (!file) {
@@ -79,6 +83,17 @@ const App: React.FC = () => {
         reader.onerror = () => {
             setError('Could not read logo file.');
         };
+    };
+
+    const handleCustomModelChange = (file: File | null) => {
+        if (customModelUrl) {
+            URL.revokeObjectURL(customModelUrl);
+        }
+        if (file) {
+            setCustomModelUrl(URL.createObjectURL(file));
+        } else {
+            setCustomModelUrl(null);
+        }
     };
 
     const runGeneration = useCallback(async (action: () => Promise<any>) => {
@@ -146,58 +161,6 @@ const App: React.FC = () => {
         setLabelVariations([]);
     };
 
-    const handleGenerateMockup = useCallback(async () => {
-        if (!design.generatedLabel) {
-            setError('Please generate a label first.');
-            return;
-        }
-        setCurrentStep('mockup');
-        setTriggeredAction('mockup');
-        
-        const generateSingleMockup = (view: 'front' | 'back', frontMockup?: string | null) => 
-            generateMockup(design.generatedLabel!, packagingData, view, frontMockup);
-
-        if (mockupView === 'front') {
-            setLoadingMessage('Creating front view...');
-            const result = await runGeneration(() => generateSingleMockup('front'));
-            if (result) {
-                setDesign(prev => ({ ...prev, generatedMockup: { ...prev.generatedMockup, front: result } }));
-            }
-        } else if (mockupView === 'back') {
-            setLoadingMessage('Creating back view...');
-            const result = await runGeneration(() => generateSingleMockup('back'));
-            if (result) {
-                setDesign(prev => ({ ...prev, generatedMockup: { ...prev.generatedMockup, back: result } }));
-            }
-        } else { // 'front-back'
-            setIsLoading(true);
-            setError(null);
-            
-            try {
-                setLoadingMessage('Creating front view...');
-                const frontResult = await generateSingleMockup('front');
-                if (!frontResult) throw new Error("Failed to generate the front view.");
-                
-                // Update state partially so user sees the front view while back is generating
-                setDesign(prev => ({ ...prev, generatedMockup: { front: frontResult, back: null } }));
-
-                setLoadingMessage('Creating consistent back view...');
-                const backResult = await generateSingleMockup('back', frontResult);
-                if (!backResult) throw new Error("Failed to generate the back view.");
-                
-                setDesign(prev => ({ ...prev, generatedMockup: { front: frontResult, back: backResult } }));
-            } catch (e: unknown) {
-                console.error(e);
-                setError(e instanceof Error ? e.message : 'An unknown error occurred during mockup generation.');
-            } finally {
-                setIsLoading(false);
-                setLoadingMessage('');
-                setCurrentStep(null);
-                setTriggeredAction(null);
-            }
-        }
-    }, [design.generatedLabel, packagingData, runGeneration, setDesign, mockupView]);
-    
     const handleRefine = useCallback(async (prompt: string) => {
         let imageToRefine: string | null = null;
         let refinementTarget: 'label' | 'mockup-front' | 'mockup-back' | null = null;
@@ -259,7 +222,7 @@ const App: React.FC = () => {
                         onAnalyzeImage={handleAnalyzeImage}
                         onGenerateLabel={handleGenerateLabel}
                         onGenerateVariations={handleGenerateVariations}
-                        onGenerateMockup={handleGenerateMockup}
+                        onCustomModelChange={handleCustomModelChange}
                         isLabelGenerated={!!design.generatedLabel}
                         isLoading={isLoading}
                         triggeredAction={triggeredAction}
@@ -286,6 +249,7 @@ const App: React.FC = () => {
                         dimensionsData={dimensionsData}
                         labelData={labelData}
                         packagingData={packagingData}
+                        customModelUrl={customModelUrl}
                     />
                 </div>
             </main>

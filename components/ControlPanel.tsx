@@ -14,7 +14,7 @@ interface ControlPanelProps {
   onAnalyzeImage: (file: File) => void;
   onGenerateLabel: () => void;
   onGenerateVariations: () => void;
-  onGenerateMockup: () => void;
+  onCustomModelChange: (file: File | null) => void;
   isLabelGenerated: boolean;
   isLoading: boolean;
   triggeredAction: TriggeredAction;
@@ -101,7 +101,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   labelData, setLabelData,
   dimensionsData, setDimensionsData,
   packagingData, setPackagingData,
-  onLogoChange, onAnalyzeImage, onGenerateLabel, onGenerateVariations, onGenerateMockup,
+  onLogoChange, onAnalyzeImage, onGenerateLabel, onGenerateVariations, onCustomModelChange,
   isLabelGenerated, isLoading, triggeredAction, setTriggeredAction,
   mockupView, setMockupView
 }) => {
@@ -150,6 +150,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const handleAnalyzeFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
         onAnalyzeImage(e.target.files[0]);
+    }
+  };
+
+  const handleCustomModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      onCustomModelChange(e.target.files[0]);
+    } else {
+      onCustomModelChange(null);
     }
   };
   
@@ -410,20 +418,44 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                         ))}
                     </select>
                 </div>
-                <div className="self-end">
-                    <label htmlFor="finish" className="block text-sm font-medium text-slate-300 mb-1">Finish</label>
-                    <input name="finish" id="finish" value={packagingData.finish} onChange={handlePackagingChange} placeholder="e.g., glossy, matte" className={`${packagingInputClass} ${suggestionLoadingField === 'packaging' ? packagingLoadingClass : ''}`} />
+                <div>
+                    <label htmlFor="color" className="block text-sm font-medium text-slate-300 mb-1">Bottle Color</label>
+                    <input type="color" id="color" name="color" value={packagingData.color} onChange={handlePackagingChange} className={`${packagingInputClass} h-10`} />
                 </div>
             </div>
-             <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="p-height" className="block text-sm font-medium text-slate-300 mb-1">Height (in)</label>
-                  <input type="number" id="p-height" name="height" value={packagingData.height} onChange={handlePackagingChange} className={`${packagingInputClass} ${suggestionLoadingField === 'packaging' ? packagingLoadingClass : ''}`} />
-                </div>
-                <div>
-                  <label htmlFor="p-diameter" className="block text-sm font-medium text-slate-300 mb-1">Diameter (in)</label>
-                  <input type="number" id="p-diameter" name="diameter" value={packagingData.diameter} onChange={handlePackagingChange} className={`${packagingInputClass} ${suggestionLoadingField === 'packaging' ? packagingLoadingClass : ''}`} />
-                </div>
+            <div>
+                <label htmlFor="lighting" className="block text-sm font-medium text-slate-300 mb-1">Lighting</label>
+                <select id="lighting" name="lighting" value={packagingData.lighting} onChange={handlePackagingChange} className={packagingInputClass}>
+                    <option value="studio">Studio</option>
+                    <option value="sunny">Sunny Day</option>
+                    <option value="night">Night Club</option>
+                </select>
+            </div>
+            <div>
+                <label htmlFor="customModel" className="block text-sm font-medium text-slate-300 mb-1">Custom Model (.glb)</label>
+                <input type="file" id="customModel" name="customModel" accept=".glb" onChange={handleCustomModelChange} className="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600" />
+            </div>
+            <div>
+                <label htmlFor="roughness" className="flex justify-between text-sm font-medium text-slate-300 mb-1">
+                    <span>Roughness (Matte vs. Glossy)</span>
+                    <span className="font-mono text-indigo-300">{packagingData.roughness}</span>
+                </label>
+                <input
+                    type="range" id="roughness" name="roughness" min="0" max="1" step="0.01"
+                    value={packagingData.roughness} onChange={handlePackagingChange}
+                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                />
+            </div>
+            <div>
+                <label htmlFor="metalness" className="flex justify-between text-sm font-medium text-slate-300 mb-1">
+                    <span>Metalness</span>
+                    <span className="font-mono text-indigo-300">{packagingData.metalness}</span>
+                </label>
+                <input
+                    type="range" id="metalness" name="metalness" min="0" max="1" step="0.01"
+                    value={packagingData.metalness} onChange={handlePackagingChange}
+                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                />
             </div>
           </fieldset>
 
@@ -481,10 +513,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 />
              </div>
           </fieldset>
-
-          <button type="submit" disabled={isLoading} className="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-700 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center">
-            {isLoading && triggeredAction === 'mockup' ? 'Visualizing...' : 'Generate Mockup'}
-          </button>
         </form>
       </div>
     </div>
